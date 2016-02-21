@@ -20,11 +20,11 @@ volatile int HardwareFlowControlEnabled = 0;
 struct termios options;
 
 // default UART port configuration
-ty_serialPortConfig serialPortCfg_Default = {.BaudRate   = "B009600",
-                                             .DataLength = "DataBits8",
-                                             .Parity 	 = "ParityNone",
-                                             .StopBit 	 = "StopBit1",
-                                             .FlowCtrl   = "NO"};
+ty_serialPortConfig serialPortCfg_Default  = {.BaudRate   = "B009600",
+                          		              .DataLength = "DataBits8",
+                                              .Parity 	 = "ParityNone",
+                                              .StopBit 	 = "StopBit1",
+                                              .FlowCtrl   = "NO"};
 
 static t_symstruct_baudRate baudRates_table[] = {
 		{.string = "B000050",.val = B50  },  {.string = "B000075",.val = B75   }, {.string = "B000110",.val = B110  }, {.string = "B000134",.val = B134},
