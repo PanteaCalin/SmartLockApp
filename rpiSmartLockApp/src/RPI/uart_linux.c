@@ -20,11 +20,11 @@ volatile int HardwareFlowControlEnabled = 0;
 struct termios options;
 
 // default UART port configuration
-char BaudRate[]   = "B009600";
-char DataLength[] = "DataBits8";
-char Parity[] 	  = "ParityNone";
-char StopBit[] 	  = "StopBit1";
-char FlowCtrl[]   = "NO";
+ty_serialPortConfig serialPortCfg_Default = {.BaudRate   = "B009600",
+                                             .DataLength = "DataBits8",
+                                             .Parity 	 = "ParityNone",
+                                             .StopBit 	 = "StopBit1",
+                                             .FlowCtrl   = "NO"};
 
 static t_symstruct_baudRate baudRates_table[] = {
 		{.string = "B000050",.val = B50  },  {.string = "B000075",.val = B75   }, {.string = "B000110",.val = B110  }, {.string = "B000134",.val = B134},
@@ -295,9 +295,10 @@ void uart_readUartInputBuffer(int fd, char* readBuf)
  }
 }
 
-int uart_setupSerialPortParameters(char* serialPortName)
+int uart_setupSerialPortParameters(char* serialPortName, ty_serialPortConfig* serialPortCfg)
 {
     char i;
+    UART_DGB_PRINT_MSG("%s\n",__func__);
 
     UART_DGB_PRINT_MSG("port name: %s\n", serialPortName);
 
@@ -306,20 +307,20 @@ int uart_setupSerialPortParameters(char* serialPortName)
     UART_DGB_PRINT_MSG("open serial port...\n");
     serialPortFD = uart_open_port(serialPortName);
 
-    UART_DGB_PRINT_MSG("set baud rate: %s\n", BaudRate);
-    uart_setBaudRate(serialPortFD, BaudRate);
+    UART_DGB_PRINT_MSG("set baud rate: %s\n", serialPortCfg->BaudRate);
+    uart_setBaudRate(serialPortFD, serialPortCfg->BaudRate);
 
-    UART_DGB_PRINT_MSG("set parity bits: %s\n", Parity);
-    uart_setParityBit(serialPortFD, Parity);
+    UART_DGB_PRINT_MSG("set parity bits: %s\n", serialPortCfg->Parity);
+    uart_setParityBit(serialPortFD, serialPortCfg->Parity);
 
-    UART_DGB_PRINT_MSG("set stop bits: %s\n", StopBit);
-    uart_setStopBit(serialPortFD, StopBit);
+    UART_DGB_PRINT_MSG("set stop bits: %s\n", serialPortCfg->StopBit);
+    uart_setStopBit(serialPortFD, serialPortCfg->StopBit);
 
-    UART_DGB_PRINT_MSG("set data length: %s\n", DataLength);
-    uart_setDataLength(serialPortFD, DataLength);
+    UART_DGB_PRINT_MSG("set data length: %s\n", serialPortCfg->DataLength);
+    uart_setDataLength(serialPortFD, serialPortCfg->DataLength);
 
-    UART_DGB_PRINT_MSG("set flow control: %s\n", FlowCtrl);
-    uart_setFlowControl(serialPortFD, FlowCtrl);
+    UART_DGB_PRINT_MSG("set flow control: %s\n", serialPortCfg->FlowCtrl);
+    uart_setFlowControl(serialPortFD, serialPortCfg->FlowCtrl);
 
    return serialPortFD;
 }

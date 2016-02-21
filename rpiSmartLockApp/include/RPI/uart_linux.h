@@ -68,6 +68,14 @@ typedef struct
 	int val;
 } t_symstruct_dataLength;
 
+typedef struct {
+ char* BaudRate;
+ char* DataLength;
+ char* Parity;
+ char* StopBit;
+ char* FlowCtrl;
+} ty_serialPortConfig;
+
 // ###########################################################
 // Function Prototypes 
 // ###########################################################
@@ -92,5 +100,4 @@ void uart_waitRTS(int fd);
 void uart_setCTS(int fd, int set_nClear);
 void uart_readUartInputData(int fd, char* readBuf);
 void uart_readUartInputBuffer(int fd, char* readBuf);
-int  uart_setupSerialPortParameters(char* serialPortName);
-
+int  uart_setupSerialPortParameters(char* serialPortName, ty_serialPortConfig* serialPortCfg);
