@@ -110,41 +110,47 @@ else
  $(warning WARNING - undefined pir sensor module)
 endif
 
+# ---------------------[ DO NOT EDIT BELOW THIS LINE ]------------------------- #
+
 # create an object file for each source file
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 
 # append prefix $(OUT_DIR) to all object files
-#OBJS := $(addprefix $(OUT_DIR), $(OBJS))
+# OBJS := $(addprefix $(OUT_DIR), $(OBJS))
 
 # dependencies
-DEPENDENCY_OPT = -MM
-DEPENDENCIES = $(patsubst %.c, %.d, $(SRCS))
-
-# ---------------------[ DO NOT EDIT BELOW THIS LINE ]------------------------- #
+# the -MM command passed to gcc will generate the dependencies for a given source file 
+#DEPENDENCY_OPT = -MM
+#DEPENDENCIES = $(patsubst %.c, %.d, $(SRCS))
 
 # ------------------------------[ Targets ] ----------------------------------- #
-# make targets
-# TODO: find a way to automatically declare target rules based on the OBJS list;
-# declare here rules to make all the possible targets in the application;
-# only the objects found in $(OBJS) will actually be built and linked in the final app.
 
-all: $(OUT_DIR)$(DEPENDENCIES) $(EXEC_NAME)
-
-$(EXEC_NAME): $(OBJS)
-	$(CC) $(OBJS) $(OFLAGS) $(OUT_DIR)$(EXEC_NAME)
+# build application. It is build by linking all the object files in $(OBJS)
+#all: $(OUT_DIR)$(DEPENDENCIES) $(OBJS)
+all: $(OBJS)
+	@echo "=========================================================="
+	@echo "========== Building $(EXEC_NAME) application =========="
+	@echo "Following object files will be build and linked:\n"
+	@$(foreach obj,$(OBJS),echo $(obj);)
+	@echo ""
+	$(BUILD_CMD_VEROSITY) $(CC) $(OBJS) $(OFLAGS) $(OUT_DIR)$(EXEC_NAME)
+	@echo "$(EXEC_NAME) application built sucessfully"
+	@echo "=========================================================="
 
 # create the dependency files. Create a .d dependency file for each .c source file;
-$(DEPENDENCIES): %.d: $(SRC_DIR)%.c
-	$(CC) $(DEPENDENCY_OPT) $(INCFLAG) $< > $(OUT_DIR)$*.d
+#$(DEPENDENCIES): %.d: $(SRC_DIR)%.c
+#	$(CC) $(DEPENDENCY_OPT) $(INCFLAG) $< > $(OUT_DIR)$*.d
 
 # Include dependencies (if there are any)
-ifneq "$(strip $(DEPENDENCIES))" ""
- -include $(DEPENDENCIES)
-endif
+#ifneq "$(strip $(DEPENDENCIES))" ""
+# -include $(DEPENDENCIES)
+#endif
 
 # build object files. For each %.c source file in $(SRCS), an %.o object is created; 
 $(OBJS): %.o: $(SRC_DIR)%.c
+	@echo "\n"
 	@echo "Building $@ object. Source file is $<"
+	@echo "====================================================================="
 	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $@
 
 # make clean; will delete everytinhg in output/ directory
