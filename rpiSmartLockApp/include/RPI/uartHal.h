@@ -19,7 +19,7 @@
 
 // uart API
 typedef struct {
- int (*setupPortParams)(char* serialPortName);
+ int (*setupPortParams)(char* serialPortName, ty_serialPortConfig* serialPortCfg);
  int (*writeData)(int fd, void* writeData, int bytes);
  int (*readData)(int fd, void* readData, int bytes);
 } ty_uart_api;
