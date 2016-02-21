@@ -15,6 +15,8 @@
 
 int main(int argc, char *argv[]) {
 
+ MAIN_DGB_PRINT_MSG("Main app start\n");
+
  selectAPIs();
  gsm.init();
 
