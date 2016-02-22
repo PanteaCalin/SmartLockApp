@@ -116,12 +116,10 @@ endif
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 
 # append prefix $(OUT_DIR) to all object files
-# OBJS := $(addprefix $(OUT_DIR), $(OBJS))
+OBJS := $(addprefix $(OUT_DIR), $(OBJS))
 
-# dependencies
-# the -MM command passed to gcc will generate the dependencies for a given source file 
-#DEPENDENCY_OPT = -MM
-#DEPENDENCIES = $(patsubst %.c, %.d, $(SRCS))
+# append prefix $(SRC_DIR) to all source files
+SRCS := $(addprefix $(SRC_DIR), $(SRCS))
 
 # ------------------------------[ Targets ] ----------------------------------- #
 
@@ -137,21 +135,17 @@ all: $(OBJS)
 	@echo "$(EXEC_NAME) application built sucessfully"
 	@echo "=========================================================="
 
-# create the dependency files. Create a .d dependency file for each .c source file;
-#$(DEPENDENCIES): %.d: $(SRC_DIR)%.c
-#	$(CC) $(DEPENDENCY_OPT) $(INCFLAG) $< > $(OUT_DIR)$*.d
-
-# Include dependencies (if there are any)
-#ifneq "$(strip $(DEPENDENCIES))" ""
-# -include $(DEPENDENCIES)
-#endif
-
 # build object files. For each %.c source file in $(SRCS), an %.o object is created; 
-$(OBJS): %.o: $(SRC_DIR)%.c
+$(OBJS): %.o: %.c
+#$(OBJS): %.o: $(SRCS): %.c
 	@echo "\n"
 	@echo "Building $@ object. Source file is $<"
 	@echo "====================================================================="
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $@
+	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $(OUT_DIR)$@
+
+echoSRCS:
+	@echo "SRCS: $(SRCS)"
+	@echo "OBJS: $(OBJS)"
 
 # make clean; will delete everytinhg in output/ directory
 clean:
