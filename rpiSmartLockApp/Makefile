@@ -59,6 +59,8 @@ SRCS += uartHal.c
 SRCS += gsmHal.c
 SRCS += accHal.c  
 
+#TODO: find a way to construct all the conditional stuff below automatically
+
 # platform dependent build flags
 ifneq ($(PLATFORM),UNDEFINED )
  ifeq ($(PLATFORM),RPI)
@@ -112,6 +114,16 @@ endif
 
 # ---------------------[ DO NOT EDIT BELOW THIS LINE ]------------------------- #
 
+# VPATH variable tells make where to look for prerequisite files
+# VPATH = $(SRC_DIR)
+
+# this is just a more fancy way of doing what the above VPATH was doing.
+# Although it could be useful for the case where there are different source
+# directories for each platform the project may run on.
+vpath %.c $(SRC_DIR)
+
+#TODO: should not forget about the .d dependency files
+
 # create an object file for each source file
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 
@@ -119,7 +131,7 @@ OBJS = $(patsubst %.c, %.o, $(SRCS))
 OBJS := $(addprefix $(OUT_DIR), $(OBJS))
 
 # append prefix $(SRC_DIR) to all source files
-SRCS := $(addprefix $(SRC_DIR), $(SRCS))
+#SRCS := $(addprefix $(SRC_DIR), $(SRCS))
 
 # ------------------------------[ Targets ] ----------------------------------- #
 
@@ -146,6 +158,7 @@ $(OBJS): %.o: %.c
 echoSRCS:
 	@echo "SRCS: $(SRCS)"
 	@echo "OBJS: $(OBJS)"
+	@echo "VPATH: $(VPATH)"
 
 # make clean; will delete everytinhg in output/ directory
 clean:
