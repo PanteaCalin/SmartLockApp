@@ -34,38 +34,40 @@ PIR_SENSOR = DUMMY
 
 # ------------------------------[ Project Location Related ]------------------- #
 
-PRJ_DIR       = $(shell pwd)
-SRC_DIR       = $(PRJ_DIR)/src/$(PLATFORM)/
-DUMMY_SRC_DIR = $(PRJ_DIR)/src/dummy/
-INC_DIR       = $(PRJ_DIR)/include/$(PLATFORM)/
-DUMMY_INC_DIR = $(PRJ_DIR)/include/dummy/
-OUT_DIR       = $(PRJ_DIR)/output/
+PRJ_DIR = .
+SRC_DIR = $(PRJ_DIR)/src/
+INC_DIR = $(PRJ_DIR)/include/
+OUT_DIR = $(PRJ_DIR)/output/
+OBJ_DIR = $(OUT_DIR)obj/
 
 # ------------------------------[ Build Options ]------------------------------ #
 
-CC     = gcc
-DEBUG  = -g
-CFLAGS = -c -Wall -I$(INC_DIR) -I$(DUMMY_INC_DIR)
-OFLAGS = -o
+CC      = gcc
+DEBUG   = -g
+CFLAGS  = -c -Wall -I$(INC_DIR)
+INCFLAG = -I$(INC_DIR)
+OFLAGS  = -o
 BUILD_CMD_VEROSITY = @ 
+
+#TODO:  find a way to construct all the conditional stuff below automatically
 
 # objects built regardless of the hw system configuration:
 # main application object
-OBJS += $(OUT_DIR)rpiSmartLockApp.o
+SRCS += rpiSmartLockApp.c
 
 # hardware abstraction layer objects
-OBJS += $(OUT_DIR)hal.o
-OBJS += $(OUT_DIR)gpioHal.o
-OBJS += $(OUT_DIR)uartHal.o
-OBJS += $(OUT_DIR)gsmHal.o
-OBJS += $(OUT_DIR)accHal.o  
+SRCS += hal.c
+SRCS += gpioHal.c
+SRCS += uartHal.c
+SRCS += gsmHal.c
+SRCS += accHal.c  
 
 # platform dependent build flags
 ifneq ($(PLATFORM),UNDEFINED )
  ifeq ($(PLATFORM),RPI)
   HW_CFG += -DPLATFORM_RPI
-  OBJS += $(OUT_DIR)uart_linux.o
-  OBJS += $(OUT_DIR)bcm2835.o  
+  SRCS += uart_linux.c
+  SRCS += bcm2835.c
  else
   $(error ERROR - invalid platform: $(PLATFORM).)
  endif	
@@ -77,10 +79,10 @@ endif
 ifneq ($(GSM_MODULE),UNDEFINED)
  ifeq ($(GSM_MODULE),FIBOCOM_G510)
   HW_CFG += -DGSM_MODULE_FIBOCOM_G510
-  OBJS += $(OUT_DIR)gsm_fibocomG510.o
+  SRCS += gsm_fibocomG510.c
  else ifeq ($(GSM_MODULE),DUMMY)
   HW_CFG += -DGSM_MODULE_DUMMY
-  OBJS += $(OUT_DIR)gsm_dummy.o
+  SRCS += gsm_dummy.c
  else
   $(error ERROR - invalid gsm_module: $(GSM_MODULE))
  endif
@@ -95,7 +97,7 @@ ifneq ($(ACCELEROMETER),UNDEFINED)
   #TODO add accelerometer module related objects here.
  else ifeq ($(ACCELEROMETER),DUMMY)
   HW_CFG += -DACCELEROMETER_DUMMY
-  OBJS += $(OUT_DIR)acc_dummy.o
+  SRCS += acc_dummy.c
  endif
 else
  $(warning WARNING - undefined accelerometer sensor module)
@@ -111,13 +113,22 @@ else
  $(warning WARNING - undefined pir sensor module)
 endif
 
-# ------------------------------[ Targets ] ----------------------------------- #
-# make targets
-# TODO: find a way to automatically declare target rules based on the OBJS list;
-# declare here rules to make all the possible targets in the application;
-# only the objects found in $(OBJS) will actually be built and linked in the final app.
+# ---------------------[ DO NOT EDIT BELOW THIS LINE ]------------------------- #
 
-# make all; will build only the targets found in $(OBJS) 
+# tells make where to look for prerequisite files
+vpath %.c $(SRC_DIR)
+
+#TODO: should not forget about the .d dependency files
+
+# create an object file for each source file
+OBJS = $(patsubst %.c, %.o, $(SRCS))
+
+# append prefix $(OUT_DIR) to all object files
+OBJS := $(addprefix $(OBJ_DIR), $(OBJS))
+
+# ------------------------------[ Targets ] ----------------------------------- #
+
+# build application. It is build by linking all the object files in $(OBJS)
 all: $(OBJS)
 	@echo "=========================================================="
 	@echo "========== Building $(EXEC_NAME) application =========="
@@ -128,56 +139,19 @@ all: $(OBJS)
 	@echo "$(EXEC_NAME) application built sucessfully"
 	@echo "=========================================================="
 
+# build object files. For each %.c source file in $(SRCS), an %.o object is created; 
+$(OBJ_DIR)%.o: %.c | $(OBJ_DIR)
+	@echo "\n"
+	@echo "Building $@ object. Source file is $<"
+	@echo "====================================================================="
+	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $@
+
+# create $(OBJ_DIR) directory if it does not exist
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
 # make clean; will delete everytinhg in output/ directory
 clean:
 	@echo "Removing all files from $(OUT_DIR)" 
-	rm -f $(OUT_DIR)*
+	rm -r $(OUT_DIR)*
 	@echo "make clean ... Done"
-
-$(OUT_DIR)rpiSmartLockApp.o: $(SRC_DIR)rpiSmartLockApp.c $(INC_DIR)rpiSmartLockApp.h $(INC_DIR)rpiSmartLockApp_Defines.h  
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $(SRC_DIR)rpiSmartLockApp.c $(OFLAGS) $(OUT_DIR)rpiSmartLockApp.o
-
-$(OUT_DIR)hal.o: $(SRC_DIR)hal.c $(INC_DIR)hal.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $(SRC_DIR)hal.c $(OFLAGS) $(OUT_DIR)hal.o
-
-$(OUT_DIR)gpioHal.o: $(SRC_DIR)gpioHal.c $(INC_DIR)gpioHal.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $(SRC_DIR)gpioHal.c $(OFLAGS) $(OUT_DIR)gpioHal.o
-
-$(OUT_DIR)uartHal.o: $(SRC_DIR)uartHal.c $(INC_DIR)uartHal.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $(SRC_DIR)uartHal.c $(OFLAGS) $(OUT_DIR)uartHal.o
-
-$(OUT_DIR)gsmHal.o: $(SRC_DIR)gsmHal.c $(INC_DIR)gsmHal.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $(SRC_DIR)gsmHal.c $(OFLAGS) $(OUT_DIR)gsmHal.o
-
-$(OUT_DIR)accHal.o: $(SRC_DIR)accHal.c $(INC_DIR)accHal.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $(SRC_DIR)accHal.c $(OFLAGS) $(OUT_DIR)accHal.o
-
-$(OUT_DIR)uart_linux.o: $(SRC_DIR)uart_linux.c $(INC_DIR)uart_linux.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(SRC_DIR)uart_linux.c $(OFLAGS) $(OUT_DIR)uart_linux.o
-
-$(OUT_DIR)gsm_fibocomG510.o: $(SRC_DIR)gsm_fibocomG510.c $(INC_DIR)gsm_fibocomG510.h 
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $(SRC_DIR)gsm_fibocomG510.c $(OFLAGS) $(OUT_DIR)gsm_fibocomG510.o    
-
-$(OUT_DIR)bcm2835.o: $(SRC_DIR)bcm2835.c $(INC_DIR)bcm2835.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(SRC_DIR)bcm2835.c $(OFLAGS) $(OUT_DIR)bcm2835.o 
-
-# dummy object files. Used by sw to emulate some of the hw peripherals
-$(OUT_DIR)gsm_dummy.o: $(DUMMY_SRC_DIR)gsm_dummy.c $(DUMMY_INC_DIR)gsm_dummy.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(DUMMY_SRC_DIR)gsm_dummy.c $(OFLAGS) $(OUT_DIR)gsm_dummy.o 
-
-$(OUT_DIR)acc_dummy.o: $(DUMMY_SRC_DIR)acc_dummy.c $(DUMMY_INC_DIR)acc_dummy.h
-	@echo "\nBuilding $@\n"
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(DUMMY_SRC_DIR)acc_dummy.c $(OFLAGS) $(OUT_DIR)acc_dummy.o 
-
-
-
