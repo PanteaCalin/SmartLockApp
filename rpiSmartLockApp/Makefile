@@ -49,6 +49,8 @@ INCFLAG = -I$(INC_DIR)
 OFLAGS  = -o
 BUILD_CMD_VEROSITY = @ 
 
+#TODO: find a way to construct all the conditional stuff below automatically
+
 # objects built regardless of the hw system configuration:
 # main application object
 SRCS += rpiSmartLockApp.c
@@ -59,8 +61,6 @@ SRCS += gpioHal.c
 SRCS += uartHal.c
 SRCS += gsmHal.c
 SRCS += accHal.c  
-
-#TODO: find a way to construct all the conditional stuff below automatically
 
 # platform dependent build flags
 ifneq ($(PLATFORM),UNDEFINED )
