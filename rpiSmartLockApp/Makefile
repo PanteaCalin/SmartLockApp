@@ -114,12 +114,7 @@ endif
 
 # ---------------------[ DO NOT EDIT BELOW THIS LINE ]------------------------- #
 
-# VPATH variable tells make where to look for prerequisite files
-# VPATH = $(SRC_DIR)
-
-# this is just a more fancy way of doing what the above VPATH was doing.
-# Although it could be useful for the case where there are different source
-# directories for each platform the project may run on.
+# tells make where to look for prerequisite files
 vpath %.c $(SRC_DIR)
 
 #TODO: should not forget about the .d dependency files
@@ -130,13 +125,9 @@ OBJS = $(patsubst %.c, %.o, $(SRCS))
 # append prefix $(OUT_DIR) to all object files
 OBJS := $(addprefix $(OUT_DIR), $(OBJS))
 
-# append prefix $(SRC_DIR) to all source files
-#SRCS := $(addprefix $(SRC_DIR), $(SRCS))
-
 # ------------------------------[ Targets ] ----------------------------------- #
 
 # build application. It is build by linking all the object files in $(OBJS)
-#all: $(OUT_DIR)$(DEPENDENCIES) $(OBJS)
 all: $(OBJS)
 	@echo "=========================================================="
 	@echo "========== Building $(EXEC_NAME) application =========="
@@ -148,17 +139,11 @@ all: $(OBJS)
 	@echo "=========================================================="
 
 # build object files. For each %.c source file in $(SRCS), an %.o object is created; 
-$(OBJS): %.o: %.c
-#$(OBJS): %.o: $(SRCS): %.c
+$(OUT_DIR)%.o: %.c
 	@echo "\n"
 	@echo "Building $@ object. Source file is $<"
 	@echo "====================================================================="
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $(OUT_DIR)$@
-
-echoSRCS:
-	@echo "SRCS: $(SRCS)"
-	@echo "OBJS: $(OBJS)"
-	@echo "VPATH: $(VPATH)"
+	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $@
 
 # make clean; will delete everytinhg in output/ directory
 clean:
