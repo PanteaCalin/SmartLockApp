@@ -34,10 +34,11 @@ PIR_SENSOR = DUMMY
 
 # ------------------------------[ Project Location Related ]------------------- #
 
-PRJ_DIR       = $(shell pwd)
-SRC_DIR       = $(PRJ_DIR)/src/
-INC_DIR       = $(PRJ_DIR)/include/
-OUT_DIR       = $(PRJ_DIR)/output/
+PRJ_DIR = .
+SRC_DIR = $(PRJ_DIR)/src/
+INC_DIR = $(PRJ_DIR)/include/
+OUT_DIR = $(PRJ_DIR)/output/
+OBJ_DIR = $(OUT_DIR)obj/
 
 # ------------------------------[ Build Options ]------------------------------ #
 
@@ -123,7 +124,7 @@ vpath %.c $(SRC_DIR)
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 
 # append prefix $(OUT_DIR) to all object files
-OBJS := $(addprefix $(OUT_DIR), $(OBJS))
+OBJS := $(addprefix $(OBJ_DIR), $(OBJS))
 
 # ------------------------------[ Targets ] ----------------------------------- #
 
@@ -139,14 +140,18 @@ all: $(OBJS)
 	@echo "=========================================================="
 
 # build object files. For each %.c source file in $(SRCS), an %.o object is created; 
-$(OUT_DIR)%.o: %.c
+$(OBJ_DIR)%.o: %.c | $(OBJ_DIR)
 	@echo "\n"
 	@echo "Building $@ object. Source file is $<"
 	@echo "====================================================================="
 	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $@
 
+# create ./output/obj directory if it does not exist
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
 # make clean; will delete everytinhg in output/ directory
 clean:
 	@echo "Removing all files from $(OUT_DIR)" 
-	rm -f $(OUT_DIR)*
+	rm -r $(OUT_DIR)*
 	@echo "make clean ... Done"
