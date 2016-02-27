@@ -146,7 +146,7 @@ $(OBJ_DIR)%.o: %.c | $(OBJ_DIR)
 	@echo "====================================================================="
 	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $@
 
-# create ./output/obj directory if it does not exist
+# create $(OBJ_DIR) directory if it does not exist
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
