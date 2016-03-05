@@ -14,6 +14,8 @@
  #define GPIO_DIR_OUT 0 //TODO: replace '0' with bcm2835.h define
  #define GPIO_DIR_IN  1 //TODO: replace '1' with bcm2835.h define
 
+ #define GSM_UART_PORT "/dev/ttyAMA0"
+
  // GSM Module defines
  #ifdef GSM_MODULE_FIBOCOM_G510
   //TODO: update these defines accordingly
