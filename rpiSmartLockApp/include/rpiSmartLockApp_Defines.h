@@ -11,8 +11,8 @@
 // Raspberry PI platform
 #ifdef PLATFORM_RPI
  // common
- #define GPIO_DIR_OUT 0 //TODO: replace '0' with bcm2835.h define
- #define GPIO_DIR_IN  1 //TODO: replace '1' with bcm2835.h define
+ #define GPIO_DIR_OUT BCM2835_GPIO_FSEL_OUTP
+ #define GPIO_DIR_IN  BCM2835_GPIO_FSEL_INPT
  #define GPIO_HIGH    1
  #define GPIO_LOW     0
 
