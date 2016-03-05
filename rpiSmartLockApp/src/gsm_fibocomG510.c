@@ -14,7 +14,8 @@
 // ###########################################################
 // Global Variables
 // ###########################################################
-extern int serialPortFD;
+int gsmSerialPortFileDescriptor;
+extern ty_serialPortConfig serialPortCfg_Default;
 
 // ###########################################################
 // Static Function Prototypes
@@ -36,6 +37,10 @@ static int gsm_fibocomg510_getOperatingMode();
 // -----------------------------------------------------------
 int gsm_fibocomg510_init(void) {
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
+ // init serial port
+ gsmSerialPortFileDescriptor = uart.setupPortParams(GSM_UART_PORT, &serialPortCfg_Default);
+
+ // test-only
  gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
  gsm_fibocomg510_turnOff(TURN_OFF_SW);
  return 0;
@@ -70,7 +75,7 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
   GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
   atCmdAction = atCmdAction;
   atCmd = atCmd;
-  uart.writeData(serialPortFD, atCmd, 1);
+  uart.writeData(gsmSerialPortFileDescriptor, atCmd, 1);
 }
 
 static ty_vdd_power_status gsm_fibocomg510_getPowerState() {
