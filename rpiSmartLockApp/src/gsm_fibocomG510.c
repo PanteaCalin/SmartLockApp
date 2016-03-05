@@ -9,6 +9,24 @@
 // ###########################################################
 #include <gsm_fibocomG510.h>
 #include <gpioHal.h>
+#include <uartHal.h>
+
+// ###########################################################
+// Global Variables
+// ###########################################################
+extern int serialPortFD;
+
+// ###########################################################
+// Static Function Prototypes
+// ###########################################################
+static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd);
+static int gsm_fibocomg510_getATResp(char* expectedATResp);
+static void gsm_fibocomg510_turnOn();
+static void gsm_fibocomg510_turnOff(ty_turnOff_mode mode);
+static void gsm_fibocomg510_reset();
+static void gsm_fibocomg510_wakeUp();
+static ty_vdd_power_status gsm_fibocomg510_getPowerState();
+static int gsm_fibocomg510_getOperatingMode();
 
 // ###########################################################
 // Function Definition
@@ -18,6 +36,8 @@
 // -----------------------------------------------------------
 int gsm_fibocomg510_init(void) {
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
+ gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
+ gsm_fibocomg510_turnOff(TURN_OFF_SW);
  return 0;
 }
 
@@ -46,11 +66,11 @@ int gsm_fibocomg510_getStatus(char *status) {
 
 // static function definition
 // -----------------------------------------------------------
-
 static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
   GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
   atCmdAction = atCmdAction;
   atCmd = atCmd;
+  uart.writeData(serialPortFD, atCmd, 1);
 }
 
 static ty_vdd_power_status gsm_fibocomg510_getPowerState() {
