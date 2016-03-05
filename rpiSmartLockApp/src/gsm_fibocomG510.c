@@ -52,19 +52,16 @@ int gsm_fibocomg510_hw_check(void) {
 }
 
 int gsm_fibocomg510_call(char* phoneNumber) {
- phoneNumber = phoneNumber;
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
  return 0;
 }
 
 int gsm_fibocomg510_sendSMS(char* phoneNumber, char* sms) {
- phoneNumber = phoneNumber;
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
- sms = sms;
+ return 0;
 }
 
 int gsm_fibocomg510_getStatus(char *status) {
- status = status;
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
  return 0;
 }
@@ -73,15 +70,13 @@ int gsm_fibocomg510_getStatus(char *status) {
 // -----------------------------------------------------------
 static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
   GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
-  atCmdAction = atCmdAction;
-  atCmd = atCmd;
   uart.writeData(gsmSerialPortFileDescriptor, atCmd, 1);
 }
 
 static ty_vdd_power_status gsm_fibocomg510_getPowerState() {
 
  gpio.setDir(GSM_FIBOCOMG510_GPIO_VDD, GPIO_DIR_IN);
- return ( (gpio.getLvl(GSM_FIBOCOMG510_GPIO_VDD) == 1) ? VDD_POWER_ON : VDD_POWER_OFF);
+ return ( (gpio.getLvl(GSM_FIBOCOMG510_GPIO_VDD) == GPIO_HIGH) ? VDD_POWER_ON : VDD_POWER_OFF);
 }
 
 static void gsm_fibocomg510_turnOff(ty_turnOff_mode mode) {
