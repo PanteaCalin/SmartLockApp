@@ -42,11 +42,11 @@ OBJ_DIR = $(OUT_DIR)obj/
 
 # ------------------------------[ Build Options ]------------------------------ #
 
-CC      = gcc
-DEBUG   = -g
-CFLAGS  = -c -Wall -I$(INC_DIR)
-INCFLAG = -I$(INC_DIR)
-OFLAGS  = -o
+CC       = gcc
+DBGFLAGS = -g
+CFLAGS   = -c -Wall -I$(INC_DIR)
+INCFLAG  = -I$(INC_DIR)
+OFLAGS   = -o
 BUILD_CMD_VEROSITY = @ 
 
 #TODO:  find a way to construct all the conditional stuff below automatically
@@ -57,6 +57,7 @@ SRCS += rpiSmartLockApp.c
 
 # hardware abstraction layer objects
 SRCS += hal.c
+SRCS += platformHal.c
 SRCS += gpioHal.c
 SRCS += uartHal.c
 SRCS += gsmHal.c
@@ -144,7 +145,7 @@ $(OBJ_DIR)%.o: %.c | $(OBJ_DIR)
 	@echo "\n"
 	@echo "Building $@ object. Source file is $<"
 	@echo "====================================================================="
-	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(HW_CFG) $< $(OFLAGS) $@
+	$(BUILD_CMD_VEROSITY) $(CC) $(CFLAGS) $(DBGFLAGS) $(HW_CFG) $< $(OFLAGS) $@
 
 # create $(OBJ_DIR) directory if it does not exist
 $(OBJ_DIR):
