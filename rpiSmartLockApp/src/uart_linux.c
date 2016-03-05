@@ -298,6 +298,8 @@ void uart_readUartInputBuffer(int fd, char* readBuf)
 int uart_setupSerialPortParameters(char* serialPortName, ty_serialPortConfig* serialPortCfg)
 {
     char i;
+    int serialPortFilDescriptor;
+
     UART_DGB_PRINT_MSG("%s\n",__func__);
 
     UART_DGB_PRINT_MSG("port name: %s\n", serialPortName);
@@ -305,23 +307,27 @@ int uart_setupSerialPortParameters(char* serialPortName, ty_serialPortConfig* se
     UART_DGB_PRINT_MSG("\n");
 
     UART_DGB_PRINT_MSG("open serial port...\n");
-    serialPortFD = uart_open_port(serialPortName);
+    serialPortFilDescriptor = uart_open_port(serialPortName);
+    if ( serialPortFilDescriptor < 0) {
+    	UART_DGB_PRINT_MSG("%s: ERROR - opening serial port %s failed.\n", __func__, serialPortName);
+    	return -1;
+    }
 
     UART_DGB_PRINT_MSG("set baud rate: %s\n", serialPortCfg->BaudRate);
-    uart_setBaudRate(serialPortFD, serialPortCfg->BaudRate);
+    uart_setBaudRate(serialPortFilDescriptor, serialPortCfg->BaudRate);
 
     UART_DGB_PRINT_MSG("set parity bits: %s\n", serialPortCfg->Parity);
-    uart_setParityBit(serialPortFD, serialPortCfg->Parity);
+    uart_setParityBit(serialPortFilDescriptor, serialPortCfg->Parity);
 
     UART_DGB_PRINT_MSG("set stop bits: %s\n", serialPortCfg->StopBit);
-    uart_setStopBit(serialPortFD, serialPortCfg->StopBit);
+    uart_setStopBit(serialPortFilDescriptor, serialPortCfg->StopBit);
 
     UART_DGB_PRINT_MSG("set data length: %s\n", serialPortCfg->DataLength);
-    uart_setDataLength(serialPortFD, serialPortCfg->DataLength);
+    uart_setDataLength(serialPortFilDescriptor, serialPortCfg->DataLength);
 
     UART_DGB_PRINT_MSG("set flow control: %s\n", serialPortCfg->FlowCtrl);
-    uart_setFlowControl(serialPortFD, serialPortCfg->FlowCtrl);
+    uart_setFlowControl(serialPortFilDescriptor, serialPortCfg->FlowCtrl);
 
-   return serialPortFD;
+   return serialPortFilDescriptor;
 }
 
