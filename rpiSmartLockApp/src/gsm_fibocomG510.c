@@ -40,6 +40,7 @@ int gsm_fibocomg510_init(void) {
  // init serial port
  gsmSerialPortFileDescriptor = uart.setupPortParams(GSM_UART_PORT, &serialPortCfg_Default);
 
+ gsm_fibocomg510_turnOn();
  // test-only
  gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
  gsm_fibocomg510_turnOff(TURN_OFF_SW);
@@ -99,11 +100,14 @@ static void gsm_fibocomg510_turnOff(ty_turnOff_mode mode) {
 }
 
 static void gsm_fibocomg510_turnOn() {
-
- gpio.setDir(GSM_FIBOCOMG510_GPIO_POWER_ON, GPIO_DIR_OUT);
- gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_POWER_ON);
+ GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
+ GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setDir\n", __func__);
+  gpio.setDir(GSM_FIBOCOMG510_GPIO_POWER_ON, GPIO_DIR_OUT);
+ GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setLvlLow\n", __func__);
+  gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_POWER_ON);
  //sleepMs(GSM_HW_POWER_UP_DELAY_MS); //TODO: impement sleep function
- gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_POWER_ON);
+ GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setLvlHigh\n", __func__);
+  gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_POWER_ON);
 }
 
 static void gsm_fibocomg510_reset() {
