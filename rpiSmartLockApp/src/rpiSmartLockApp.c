@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
  MAIN_DGB_PRINT_MSG("Main app start\n");
 
  selectAPIs();
+ platform.init();
  gsm.init();
 
  MAIN_DGB_PRINT_MSG("Main app done. Will Resume.\n");

@@ -16,6 +16,7 @@
 // select API depending on the hw configuration parameters in makefile
 void selectAPIs(void) {
 
+ selectAPI_platform();
  selectAPI_gpio();
  selectAPI_uart();
  selectAPI_gsm();
