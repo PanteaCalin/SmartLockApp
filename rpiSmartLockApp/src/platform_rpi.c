@@ -25,6 +25,7 @@
 // -----------------------------------------------------------
 void rpi_init(void) {
  PLATFORMRPI_DGB_PRINT_MSG("%s\n", __func__);
+ bcm2835_init();
 }
 
 // static function definition
