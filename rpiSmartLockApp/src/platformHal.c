@@ -17,7 +17,7 @@
 // -----------------------------------------------------------
 void selectAPI_platform(void) {
  #ifdef PLATFORM_RPI
- platform.init = rpi_init;
+  platform.init = rpi_init;
  #else
   //TODO:
  #endif
