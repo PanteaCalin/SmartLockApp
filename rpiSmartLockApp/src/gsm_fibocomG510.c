@@ -57,6 +57,7 @@ int gsm_fibocomg510_init(void) {
 
     // test-only
     gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
+    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
 
     gsm_fibocomg510_initialized = 1;
     return 0;
@@ -129,7 +130,27 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
 
 static int gsm_fibocomg510_getATcmdResp(ty_ATCmdRespAction action, char* resp, char* expectedResp) {
 
+    int uartInputBufferReceivedBytes = uart.getInputBytesAvailable(gsmSerialPortFileDescriptor);
 
+    if(uartInputBufferReceivedBytes <= 0) {
+        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: uart input buffer bytes available: %d\n",__func__, uartInputBufferReceivedBytes);
+        return -1;
+    }
+
+    // allocate heap buffer for AT Cmd Response
+    // TODO: reconsider your options here.
+    // Maybe there's a safer way of doing this instead of using dynamic buffer allocation
+    char* atCmdRespPtr = malloc(uartInputBufferReceivedBytes * sizeof(char));
+
+    if(atCmdRespPtr == NULL) {
+        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: AT Cmd Response buffer dynamic allocation failed.",__func__);
+        return -2;
+    }
+
+    // read AT Cmd Response
+    uart.readInputBuffer(gsmSerialPortFileDescriptor, atCmdRespPtr);
+    GSMFIBOCOMG510_DGB_PRINT_MSG("%s - INFO: AT Cmd Response: \"%s\"\n",__func__, atCmdRespPtr);
+    return 0;
 }
 
 static ty_vdd_power_status gsm_fibocomg510_getPowerState() {
