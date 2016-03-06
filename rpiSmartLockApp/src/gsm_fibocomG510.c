@@ -87,7 +87,7 @@ static void gsm_fibocomg510_turnOff(ty_turnOff_mode mode) {
   case TURN_OFF_HW:
 	  gpio.setDir(GSM_FIBOCOMG510_GPIO_POWER_ON, GPIO_DIR_OUT);
       gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_POWER_ON);
-      //sleepMs(GSM_HW_POWER_DOWN_DELAY_MS); //TODO: implement a sleep function
+      sleepMs(GSM_HW_POWER_DOWN_DELAY_MS);
       gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_POWER_ON);
       break;
 
@@ -106,7 +106,7 @@ static void gsm_fibocomg510_turnOn() {
   gpio.setDir(GSM_FIBOCOMG510_GPIO_POWER_ON, GPIO_DIR_OUT);
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setLvlLow\n", __func__);
   gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_POWER_ON);
-  sleepMs(GSM_HW_POWER_UP_DELAY_MS); //TODO: impement sleep function
+  sleepMs(GSM_HW_POWER_UP_DELAY_MS);
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setLvlHigh\n", __func__);
   gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_POWER_ON);
 }
@@ -115,7 +115,7 @@ static void gsm_fibocomg510_reset() {
 
  gpio.setDir(GSM_FIBOCOMG510_GPIO_RST, GPIO_DIR_OUT);
  gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_RST);
- //sleepMs(GSM_HW_RESET_DELAY_MS); //TODO: impement sleep function
+ sleepMs(GSM_HW_RESET_DELAY_MS);
  gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_RST);
 }
 
@@ -123,7 +123,7 @@ static void gsm_fibocomg510_wakeUp() {
 
  gpio.setDir(GSM_FIBOCOMG510_GPIO_WAKE_UP, GPIO_DIR_OUT);
  gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_WAKE_UP);
- //sleepMs(GSM_HW_WAKEUP_DELAY_MS); //TODO: impement sleep function
+ sleepMs(GSM_HW_WAKEUP_DELAY_MS);
  gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_WAKE_UP);
 }
 
