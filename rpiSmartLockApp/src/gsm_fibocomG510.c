@@ -8,6 +8,7 @@
 // Includes 
 // ###########################################################
 #include <gsm_fibocomG510.h>
+#include <platformHal.h>
 #include <gpioHal.h>
 #include <uartHal.h>
 
@@ -105,7 +106,7 @@ static void gsm_fibocomg510_turnOn() {
   gpio.setDir(GSM_FIBOCOMG510_GPIO_POWER_ON, GPIO_DIR_OUT);
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setLvlLow\n", __func__);
   gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_POWER_ON);
- //sleepMs(GSM_HW_POWER_UP_DELAY_MS); //TODO: impement sleep function
+  sleepMs(GSM_HW_POWER_UP_DELAY_MS); //TODO: impement sleep function
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setLvlHigh\n", __func__);
   gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_POWER_ON);
 }
