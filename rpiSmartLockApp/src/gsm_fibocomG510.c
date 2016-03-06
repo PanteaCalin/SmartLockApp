@@ -43,7 +43,7 @@ int gsm_fibocomg510_init(void) {
     // init serial port
     gsmSerialPortFileDescriptor = uart.setupPortParams(GSM_UART_PORT, &serialPortCfg_Default);
     if (gsmSerialPortFileDescriptor < 0) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: serial port init failed. GSM init will resume.\n",__func__);
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
         return -1;
     }
     // turn on GSM module
@@ -51,12 +51,13 @@ int gsm_fibocomg510_init(void) {
 
     // verify GSM module power state
     if( gsm_fibocomg510_getPowerState() == VDD_POWER_OFF ) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: gsm_fibocomg510_turnOn failed. GSM init will resume.\n",__func__);
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
         return -2;
     }
 
     // test-only
     gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
+    sleepMs(5000);
     gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
 
     gsm_fibocomg510_initialized = 1;
@@ -97,7 +98,7 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
     char* atCmdPtr = malloc(atCmdSize);
 
     if(atCmdPtr == NULL) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: unsuccessful heap allocation.\n",__func__);
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
         return -1;
     }
     // initialize the chunk of memory returned by malloc to 0(ZERO)
@@ -111,7 +112,7 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
     GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd: \"%s\"; AT Cmd Size: %d\n",__func__, atCmdPtr, atCmdSize);
 
     if(gsmSerialPortFileDescriptor < 0) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: gsmSerialPortFileDescriptor not valid: %d\n",__func__, gsmSerialPortFileDescriptor);
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
         return -2;
     }
 
@@ -122,18 +123,25 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
     free(atCmdPtr);
 
     if(bytesSend < 0) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: uart.writeData unsuccessful. Byte send: %d\n",__func__, bytesSend);
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
         return -3;
     }
     return bytesSend;
 }
 
+/* TODO
+IMPORTANT: this function's design is very dangerous due to the dynamic allocation nature of
+           atCmdRespPtr and the fact that it is passed to the resp argument but by the time
+           this function returns, the atCmdRespPtr would have been freed.
+           This basically means that the caller function will use resp pointer while it
+           is pointing to an un-allocated heap chunk of data.
+*/
 static int gsm_fibocomg510_getATcmdResp(ty_ATCmdRespAction action, char* resp, char* expectedResp) {
 
     int uartInputBufferReceivedBytes = uart.getInputBytesAvailable(gsmSerialPortFileDescriptor);
-
+    GSMFIBOCOMG510_DGB_PRINT_MSG("%s - INFO: uart input buffer bytes available: %d\n",__func__, uartInputBufferReceivedBytes);
     if(uartInputBufferReceivedBytes <= 0) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: uart input buffer bytes available: %d\n",__func__, uartInputBufferReceivedBytes);
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
         return -1;
     }
 
@@ -143,13 +151,39 @@ static int gsm_fibocomg510_getATcmdResp(ty_ATCmdRespAction action, char* resp, c
     char* atCmdRespPtr = malloc(uartInputBufferReceivedBytes * sizeof(char));
 
     if(atCmdRespPtr == NULL) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: AT Cmd Response buffer dynamic allocation failed.",__func__);
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
+        free(atCmdRespPtr);
         return -2;
     }
 
     // read AT Cmd Response
     uart.readInputBuffer(gsmSerialPortFileDescriptor, atCmdRespPtr);
     GSMFIBOCOMG510_DGB_PRINT_MSG("%s - INFO: AT Cmd Response: \"%s\"\n",__func__, atCmdRespPtr);
+
+    // parse the response depending on the action demanded
+    switch(action) {
+        case RETURN_FULL_RESP:
+            if(resp == NULL) {
+                GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
+                return -3;
+            }
+            resp = atCmdRespPtr;
+            break;
+        case RETURN_RESP_VALUE:
+            //TODO
+            break;
+        case MATCH_EXPECTED:
+            //TODO
+            break;
+        case SEARCH_EXPECTED:
+            //TODO
+            break;
+        default:
+            //TODO
+            break;
+    }
+
+    free(atCmdRespPtr);
     return 0;
 }
 
