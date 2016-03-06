@@ -59,3 +59,9 @@ typedef enum {
 	TURN_OFF_HW
 } ty_turnOff_mode;
 
+typedef enum {
+    RETURN_FULL_RESP,
+    RETURN_RESP_VALUE,
+    MATCH_EXPECTED,
+    SEARCH_EXPECTED
+} ty_ATCmdRespAction;
