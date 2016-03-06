@@ -39,8 +39,6 @@ static int gsm_fibocomg510_getOperatingMode();
 // -----------------------------------------------------------
 int gsm_fibocomg510_init(void) {
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
- // test-only
- gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
 
  // init serial port
  gsmSerialPortFileDescriptor = uart.setupPortParams(GSM_UART_PORT, &serialPortCfg_Default);
@@ -55,6 +53,9 @@ int gsm_fibocomg510_init(void) {
      GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: gsm_fibocomg510_turnOn failed. GSM init will resume.\n",__func__);
      return -2;
  }
+
+ // test-only
+ gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
 
  gsm_fibocomg510_initialized = 1;
  return 0;
@@ -85,22 +86,26 @@ int gsm_fibocomg510_getStatus(char *status) {
 static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
 
+ int atCmdSize = strlen(GSM_AT_CMD_PREFIX) * sizeof(char) + \
+                     strlen(atCmdAction)       * sizeof(char) + \
+                     strlen(atCmd)             * sizeof(char);
+
  // TODO: put a little more thought into this. Is it really safe to use malloc in such an application?
  // allocate memory on the HEAP for the AT command string
- char* atCmdPtr = malloc(sizeof(GSM_AT_CMD_PREFIX) + sizeof(atCmdAction) + sizeof(atCmd));
+ char* atCmdPtr = malloc(atCmdSize);
 
  // initialize the chunk of memory returned by malloc to 0(ZERO)
- memset(atCmdPtr, 0x00, sizeof(GSM_AT_CMD_PREFIX) + sizeof(atCmdAction) + sizeof(atCmd));
+ memset(atCmdPtr, 0x00, atCmdSize);
 
  // compose the AT cmd
  strcat(atCmdPtr, GSM_AT_CMD_PREFIX);
  strcat(atCmdPtr, atCmd);
  strcat(atCmdPtr, atCmdAction);
 
- GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd: %s\n",__func__, atCmdPtr);
+ GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd: \"%s\"; AT Cmd Size: %d\n",__func__, atCmdPtr, atCmdSize);
 
  // send AT cmd using serial port
- uart.writeData(gsmSerialPortFileDescriptor, atCmdPtr, sizeof(atCmdPtr));
+ uart.writeData(gsmSerialPortFileDescriptor, atCmdPtr, atCmdSize);
 
  // free the heap memory assigned by malloc
  free(atCmdPtr);
