@@ -17,9 +17,11 @@
 // -----------------------------------------------------------
 void selectAPI_uart(void) {
  #ifdef PLATFORM_RPI
-  uart.setupPortParams = uart_setupSerialPortParameters;
-  uart.writeData       = uart_writeData;
-  uart.readData        = uart_readData;
+  uart.setupPortParams        = uart_setupSerialPortParameters;
+  uart.writeData              = uart_writeData;
+  uart.readData               = uart_readData;
+  uart.readInputBuffer        = uart_readUartInputBuffer;
+  uart.getInputBytesAvailable = uart_getInputBytesAvailable;
  #else
   //TODO:
  #endif
