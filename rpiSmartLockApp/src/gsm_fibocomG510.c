@@ -17,6 +17,7 @@
 // ###########################################################
 int gsmSerialPortFileDescriptor;
 extern ty_serialPortConfig serialPortCfg_Default;
+static int gsm_fibocomg510_initialized = 0; //TODO: change type to bool
 
 // ###########################################################
 // Static Function Prototypes
@@ -38,13 +39,24 @@ static int gsm_fibocomg510_getOperatingMode();
 // -----------------------------------------------------------
 int gsm_fibocomg510_init(void) {
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
- // init serial port
- gsmSerialPortFileDescriptor = uart.setupPortParams(GSM_UART_PORT, &serialPortCfg_Default);
-
- gsm_fibocomg510_turnOn();
  // test-only
  gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
- gsm_fibocomg510_turnOff(TURN_OFF_SW);
+
+ // init serial port
+ gsmSerialPortFileDescriptor = uart.setupPortParams(GSM_UART_PORT, &serialPortCfg_Default);
+ if (gsmSerialPortFileDescriptor < 0) {
+     GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: serial port init failed. GSM init will resume.\n",__func__);
+     return -1;
+ }
+
+ gsm_fibocomg510_turnOn();
+
+ if( gsm_fibocomg510_getPowerState() == VDD_POWER_OFF ) {
+     GSMFIBOCOMG510_DGB_PRINT_MSG("%s - ERROR: gsm_fibocomg510_turnOn failed. GSM init will resume.\n",__func__);
+     return -2;
+ }
+
+ gsm_fibocomg510_initialized = 1;
  return 0;
 }
 
@@ -71,8 +83,27 @@ int gsm_fibocomg510_getStatus(char *status) {
 // static function definition
 // -----------------------------------------------------------
 static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
-  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
-  uart.writeData(gsmSerialPortFileDescriptor, atCmd, 1);
+ GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
+
+ // TODO: put a little more thought into this. Is it really safe to use malloc in such an application?
+ // allocate memory on the HEAP for the AT command string
+ char* atCmdPtr = malloc(sizeof(GSM_AT_CMD_PREFIX) + sizeof(atCmdAction) + sizeof(atCmd));
+
+ // initialize the chunk of memory returned by malloc to 0(ZERO)
+ memset(atCmdPtr, 0x00, sizeof(GSM_AT_CMD_PREFIX) + sizeof(atCmdAction) + sizeof(atCmd));
+
+ // compose the AT cmd
+ strcat(atCmdPtr, GSM_AT_CMD_PREFIX);
+ strcat(atCmdPtr, atCmd);
+ strcat(atCmdPtr, atCmdAction);
+
+ GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd: %s\n",__func__, atCmdPtr);
+
+ // send AT cmd using serial port
+ uart.writeData(gsmSerialPortFileDescriptor, atCmdPtr, sizeof(atCmdPtr));
+
+ // free the heap memory assigned by malloc
+ free(atCmdPtr);
 }
 
 static ty_vdd_power_status gsm_fibocomg510_getPowerState() {
@@ -102,13 +133,10 @@ static void gsm_fibocomg510_turnOff(ty_turnOff_mode mode) {
 
 static void gsm_fibocomg510_turnOn() {
  GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
- GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setDir\n", __func__);
-  gpio.setDir(GSM_FIBOCOMG510_GPIO_POWER_ON, GPIO_DIR_OUT);
- GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setLvlLow\n", __func__);
-  gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_POWER_ON);
-  sleepMs(GSM_HW_POWER_UP_DELAY_MS);
- GSMFIBOCOMG510_DGB_PRINT_MSG("%s - gpio.setLvlHigh\n", __func__);
-  gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_POWER_ON);
+ gpio.setDir(GSM_FIBOCOMG510_GPIO_POWER_ON, GPIO_DIR_OUT);
+ gpio.setLvlLow(GSM_FIBOCOMG510_GPIO_POWER_ON);
+ sleepMs(GSM_HW_POWER_UP_DELAY_MS);
+ gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_POWER_ON);
 }
 
 static void gsm_fibocomg510_reset() {
