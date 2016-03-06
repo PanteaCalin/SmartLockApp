@@ -277,13 +277,20 @@ void uart_readUartInputData(int fd, char* readBuf)
   }
 }
 
+int uart_getInputBytesAvailable(int fd) {
+
+ int inputBytesAvailable;
+ ioctl(fd, FIONREAD, &inputBytesAvailable);
+ return inputBytesAvailable;
+}
+
 void uart_readUartInputBuffer(int fd, char* readBuf)
 {
  int inputBytesAvailable;
  int n, i=0;
  char recData = 0x00;
 
- ioctl(fd, FIONREAD, &inputBytesAvailable);
+ inputBytesAvailable = uart_getInputBytesAvailable(fd);
 
  while(inputBytesAvailable > 0) {
 	  n = uart_readData(fd, (void*)&recData, 1);
@@ -291,7 +298,7 @@ void uart_readUartInputBuffer(int fd, char* readBuf)
 		  readBuf[i] = recData;
 		  i++;
 	  }
-	  ioctl(fd, FIONREAD, &inputBytesAvailable);
+	  inputBytesAvailable = uart_getInputBytesAvailable(fd);
  }
 }
 

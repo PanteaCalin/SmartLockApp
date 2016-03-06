@@ -95,6 +95,7 @@ static void uart_setFlowControl(int fd, char* flowControl);
 // -----------------------------------------------------------
 int  uart_writeData(int fd, void* writeData, int bytes);
 int  uart_readData(int fd, void* readData, int bytes);
+int  uart_getInputBytesAvailable(int fd);
 void uart_flushInOutBuffers(int fd);
 void uart_waitRTS(int fd);
 void uart_setCTS(int fd, int set_nClear);
