@@ -67,6 +67,7 @@ SRCS += accHal.c
 ifneq ($(PLATFORM),UNDEFINED )
  ifeq ($(PLATFORM),RPI)
   HW_CFG += -DPLATFORM_RPI
+  SRCS += platform_rpi.c
   SRCS += uart_linux.c
   SRCS += bcm2835.c
  else
