@@ -22,7 +22,7 @@ static int gsm_fibocomg510_initialized = 0; //TODO: change type to bool
 // ###########################################################
 // Static Function Prototypes
 // ###########################################################
-static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd);
+static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmdVal);
 static int gsm_fibocomg510_getATcmdResp(ty_ATCmdRespAction action, char* resp, char* expectedResp);
 static void gsm_fibocomg510_turnOn();
 static void gsm_fibocomg510_turnOff(ty_turnOff_mode mode);
@@ -56,7 +56,7 @@ int gsm_fibocomg510_init(void) {
     }
 
     // test-only
-    gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT);
+    gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT, NULL);
     sleepMs(5000);
     gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
 
@@ -86,20 +86,32 @@ int gsm_fibocomg510_getStatus(char *status) {
 
 // static function definition
 // -----------------------------------------------------------
-static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
+static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmdVal) {
     GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
+    int atCmdSize;
+    char* atCmdPtr;
+    int bytesSend;
 
-    int atCmdSize = (strlen(GSM_AT_CMD_PREFIX) + \
-                     strlen(atCmdAction)       + \
-                     strlen(atCmd)             ) * sizeof(char);
+    // if the set AT command is used then the value pointer must be valid
+    if((atCmdAction == GSM_AT_CMD_SET) && (atCmdVal == NULL)) {
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
+        return -1;
+    }
+
+    atCmdSize = (strlen(GSM_AT_CMD_PREFIX) + \
+                 strlen(atCmdAction)       + \
+                 strlen(atCmd)             +
+                 ((atCmdAction == GSM_AT_CMD_SET) ? strlen(atCmdVal) : 0)
+                 ) * sizeof(char);
 
     // TODO: put a little more thought into this. Is it really safe to use malloc in such an application?
     // allocate memory on the HEAP for the AT command string
-    char* atCmdPtr = malloc(atCmdSize);
+    atCmdPtr = malloc(atCmdSize);
 
     if(atCmdPtr == NULL) {
         GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        return -1;
+        free(atCmdPtr);
+        return -2;
     }
     // initialize the chunk of memory returned by malloc to 0(ZERO)
     memset(atCmdPtr, 0x00, atCmdSize);
@@ -108,23 +120,27 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd) {
     strcat(atCmdPtr, GSM_AT_CMD_PREFIX);
     strcat(atCmdPtr, atCmd);
     strcat(atCmdPtr, atCmdAction);
+    if((atCmdAction == GSM_AT_CMD_SET) && (atCmdVal != NULL)) {
+        strcat(atCmdPtr, atCmdVal);
+    }
 
     GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd: \"%s\"; AT Cmd Size: %d\n",__func__, atCmdPtr, atCmdSize);
 
     if(gsmSerialPortFileDescriptor < 0) {
         GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        return -2;
+        free(atCmdPtr);
+        return -3;
+    } else {
+        // send AT cmd using serial port
+        bytesSend = uart.writeData(gsmSerialPortFileDescriptor, atCmdPtr, atCmdSize);
     }
-
-    // send AT cmd using serial port
-    int bytesSend = uart.writeData(gsmSerialPortFileDescriptor, atCmdPtr, atCmdSize);
 
     // free the heap memory assigned by malloc
     free(atCmdPtr);
 
     if(bytesSend < 0) {
         GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        return -3;
+        return -4;
     }
     return bytesSend;
 }
@@ -205,7 +221,7 @@ static void gsm_fibocomg510_turnOff(ty_turnOff_mode mode) {
         break;
 
     case TURN_OFF_SW:
-        gsm_fibocomg510_sendATcmd(GSM_AT_CMD_SET, GSM_HW_POWER_DOWN);
+        gsm_fibocomg510_sendATcmd(GSM_AT_CMD_SET, GSM_HW_POWER_DOWN, NULL);
         break;
 
     default:
