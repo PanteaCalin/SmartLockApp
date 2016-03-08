@@ -88,31 +88,34 @@ int gsm_fibocomg510_getStatus(char *status) {
 // -----------------------------------------------------------
 static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmdVal) {
     GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
-    int atCmdSize;
-    char* atCmdPtr;
-    int bytesSend;
 
-    // if the set AT command is used then the value pointer must be valid
-    if((atCmdAction == GSM_AT_CMD_SET) && (atCmdVal == NULL)) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        return -1;
+    char* atCmdPtr = NULL;
+    int atCmdSize = 0;
+    int bytesSend = 0;
+
+    // verify the validity of argument pointers
+    if( (atCmdAction == NULL) || (atCmd == NULL) || ((atCmdAction == (char*)GSM_AT_CMD_SET) && (atCmdVal == NULL)) ) {
+       GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
+       return -1;
     }
 
+    // verify the validity of the global serial port file descriptor assigned to GSM module
+    if(gsmSerialPortFileDescriptor < 0) {
+       GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
+       return -2;
+    }
+
+    // calculate the size of the heap buffer that has to be allocated to hold the AT command to be send
     atCmdSize = (strlen(GSM_AT_CMD_PREFIX) + \
                  strlen(atCmdAction)       + \
                  strlen(atCmd)             +
-                 ((atCmdAction == GSM_AT_CMD_SET) ? strlen(atCmdVal) : 0)
+                 ((atCmdAction == (char*)GSM_AT_CMD_SET) ? strlen(atCmdVal) : 0)
                  ) * sizeof(char);
 
     // TODO: put a little more thought into this. Is it really safe to use malloc in such an application?
     // allocate memory on the HEAP for the AT command string
     atCmdPtr = malloc(atCmdSize);
 
-    if(atCmdPtr == NULL) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        free(atCmdPtr);
-        return -2;
-    }
     // initialize the chunk of memory returned by malloc to 0(ZERO)
     memset(atCmdPtr, 0x00, atCmdSize);
 
@@ -120,27 +123,19 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmd
     strcat(atCmdPtr, GSM_AT_CMD_PREFIX);
     strcat(atCmdPtr, atCmd);
     strcat(atCmdPtr, atCmdAction);
-    if((atCmdAction == GSM_AT_CMD_SET) && (atCmdVal != NULL)) {
-        strcat(atCmdPtr, atCmdVal);
-    }
+    ((atCmdAction == (char*)GSM_AT_CMD_SET) ? strcat(atCmdPtr, atCmdVal) : 0 /* do nothing */);
 
     GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd: \"%s\"; AT Cmd Size: %d\n",__func__, atCmdPtr, atCmdSize);
 
-    if(gsmSerialPortFileDescriptor < 0) {
-        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        free(atCmdPtr);
-        return -3;
-    } else {
-        // send AT cmd using serial port
-        bytesSend = uart.writeData(gsmSerialPortFileDescriptor, atCmdPtr, atCmdSize);
-    }
+    // send AT cmd using serial port
+    bytesSend = uart.writeData(gsmSerialPortFileDescriptor, atCmdPtr, atCmdSize);
 
-    // free the heap memory assigned by malloc
+    // free the heap allocated pointer
     free(atCmdPtr);
 
     if(bytesSend < 0) {
         GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        return -4;
+        return -3;
     }
     return bytesSend;
 }
