@@ -123,6 +123,12 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmd
     // allocate memory on the HEAP for the AT command string
     atCmdPtr = malloc(atCmdSize);
 
+    if (atCmdPtr == NULL) {
+        GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
+        free(atCmdPtr);
+        return -3;
+    }
+
     // initialize the chunk of memory returned by malloc to 0(ZERO)
     memset(atCmdPtr, 0x00, atCmdSize);
 
@@ -142,7 +148,7 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmd
 
     if(bytesSend < 0) {
         GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        return -3;
+        return -4;
     }
     return bytesSend;
 }
