@@ -36,9 +36,9 @@
 #define GSM_HW_POWER_DOWN "+MRST"
 
 // Modem ID Commands
-#define GSM_MANUFACTURER_ID "CGMI"
-#define GSM_MODEL_ID        "CGMM"
-#define GSM_REVISION        "CGMR"
+#define GSM_MANUFACTURER_ID "+CGMI"
+#define GSM_MODEL_ID        "+CGMM"
+#define GSM_REVISION        "+CGMR"
 
 // Fibocom G510 GSM Module AT Commands Action
 // -----------------------------------------------------------
