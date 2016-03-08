@@ -112,6 +112,13 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmd
                  ((atCmdAction == (char*)GSM_AT_CMD_SET) ? strlen(atCmdVal) : 0)
                  ) * sizeof(char);
 
+    // truncate the maximum length of the heap allocated buffer to the maximum SMS payload, as specified by the protocol;
+    // SMS has been chosen as the ceiling limit for the buffer size as it looks like the only AT command that would
+    // require that much data sent in one AT command.
+    // TODO: take into consideration other AT commands too. e.g.: GPRS AT commands.
+    // TODO: should I just return an error here when condition is true instead of truncating the size to GSM_MAX_SMS_SIZE_BYTES?
+    atCmdSize = (atCmdSize > GSM_MAX_SMS_SIZE_BYTES) ? GSM_MAX_SMS_SIZE_BYTES : atCmdSize /*do nothing*/;
+
     // TODO: put a little more thought into this. Is it really safe to use malloc in such an application?
     // allocate memory on the HEAP for the AT command string
     atCmdPtr = malloc(atCmdSize);
