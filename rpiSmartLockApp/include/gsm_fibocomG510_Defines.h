@@ -21,6 +21,11 @@
 #define GSM_HW_RESET_DELAY_MS      100  // not stated anywhere in documentation
 #define GSM_HW_WAKEUP_DELAY_MS     100  // not stated anywhere in documentation
 
+// TODO: move this define in main app as it is universally applicable not specific to this GSM module
+// NOTE: protocol specifies SMS maximum payload of 140 bytes.
+// This means that maximum 140 8-bit characters or 160 7-bit characters can be send in one SMS chunk.
+#define GSM_MAX_SMS_SIZE_BYTES 140
+
 // Fibocom G510 GSM Module AT Commands Prefix
 // -----------------------------------------------------------
 #define GSM_AT_CMD_PREFIX "AT"
