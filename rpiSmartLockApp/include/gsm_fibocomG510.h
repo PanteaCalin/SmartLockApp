@@ -9,6 +9,7 @@
 // ###########################################################
 #include <rpiSmartLockApp_Defines.h>
 #include <gsm_fibocomG510_Defines.h>
+#include <stdlib.h> /* for malloc, free, ... */
 
 // ###########################################################
 // Function Prototypes 

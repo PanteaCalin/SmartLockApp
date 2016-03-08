@@ -8,6 +8,7 @@
 // Includes 
 // ###########################################################
 #include <acc_dummy_defines.h>
+#include <stdio.h> //for printf
 
 // ###########################################################
 // Function Prototypes

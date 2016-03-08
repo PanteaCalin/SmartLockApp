@@ -41,6 +41,21 @@ static t_symstruct_dataLength dataLength_table[] = {
                 {.string = "STOP",.val = 0} };
 
 // ###########################################################
+// Function Prototypes
+// ###########################################################
+
+// static functions prototypes
+// -----------------------------------------------------------
+static int  uart_open_port(char* portName);
+static int  uart_getBaudRateFromCmd(char* cmd);
+static int  uart_getDataLengthFromCmd(char* cmd);
+static void uart_setBaudRate(int fd, char* baudRate_cmd);
+static void uart_setDataLength(int fd, char* dataLength_cmd);
+static void uart_setParityBit(int fd, char* parity);
+static void uart_setStopBit(int fd, char* stopBit);
+static void uart_setFlowControl(int fd, char* flowControl);
+
+// ###########################################################
 // Function Definition
 // ###########################################################
 
@@ -213,7 +228,6 @@ static void uart_setStopBit(int fd, char* stopBit)
 static void uart_setFlowControl(int fd, char* flowControl)
 {
   char flowControlHardware[] = "HW";
-  int status;
 
   // get current configuration
   tcgetattr(fd, &options);
@@ -304,7 +318,6 @@ void uart_readUartInputBuffer(int fd, char* readBuf)
 
 int uart_setupSerialPortParameters(char* serialPortName, ty_serialPortConfig* serialPortCfg)
 {
-    char i;
     int serialPortFilDescriptor;
 
     UART_DGB_PRINT_MSG("%s\n",__func__);

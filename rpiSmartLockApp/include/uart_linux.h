@@ -17,6 +17,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <stdio.h>   /* for printf */
 
 // ###########################################################
 // Defines 
@@ -79,17 +80,6 @@ typedef struct {
 // ###########################################################
 // Function Prototypes 
 // ###########################################################
-
-// static functions 
-// -----------------------------------------------------------
-static int  uart_open_port(char* portName);
-static int  uart_getBaudRateFromCmd(char* cmd);
-static int  uart_getDataLengthFromCmd(char* cmd);
-static void uart_setBaudRate(int fd, char* baudRate_cmd);
-static void uart_setDataLength(int fd, char* dataLength_cmd);
-static void uart_setParityBit(int fd, char* parity);
-static void uart_setStopBit(int fd, char* stopBit);
-static void uart_setFlowControl(int fd, char* flowControl);
 
 // global functions 
 // -----------------------------------------------------------

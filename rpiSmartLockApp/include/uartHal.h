@@ -22,7 +22,7 @@ typedef struct {
  int  (*setupPortParams)(char* serialPortName, ty_serialPortConfig* serialPortCfg);
  int  (*writeData)(int fd, void* writeData, int bytes);
  int  (*readData)(int fd, void* readData, int bytes);
- void (*readInputBuffer)(int fd, void* readBuffer);
+ void (*readInputBuffer)(int fd, char* readBuffer);
  int  (*getInputBytesAvailable)(int fd);
 } ty_uart_api;
 
