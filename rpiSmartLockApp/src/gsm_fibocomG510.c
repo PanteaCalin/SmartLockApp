@@ -165,6 +165,7 @@ static int gsm_fibocomg510_getATcmdResp(ty_ATCmdRespAction action, char* resp, c
         case RETURN_FULL_RESP:
             if(resp == NULL) {
                 GSMFIBOCOMG510_DGB_PRINT_MSG("ERROR: file %s, line %d\n",__FILE__, __LINE__);
+                free(atCmdRespPtr);
                 return -3;
             }
             resp = atCmdRespPtr;
@@ -236,4 +237,8 @@ static void gsm_fibocomg510_wakeUp() {
     gpio.setLvlHigh(GSM_FIBOCOMG510_GPIO_WAKE_UP);
 }
 
-
+static int gsm_fibocomg510_getOperatingMode() {
+    GSMFIBOCOMG510_DGB_PRINT_MSG("%s\n", __func__);
+    //TODO
+    return 0;
+}
