@@ -248,7 +248,8 @@ static void uart_setFlowControl(int fd, char* flowControl)
 
 void uart_flushInOutBuffers(int fd)
 {
-	ioctl(fd, TCFLSH);
+    UART_DGB_PRINT_MSG("%s\n",__func__);
+    ioctl(fd, TCFLSH);
 }
 
 void uart_waitRTS(int fd)
