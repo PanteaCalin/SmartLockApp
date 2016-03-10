@@ -7,19 +7,30 @@
 // ###########################################################
 // Defines 
 // ###########################################################
-#define GSMFIBOCOMG510_DGB_PRINT_MSG_ENABLE
-#ifdef GSMFIBOCOMG510_DGB_PRINT_MSG_ENABLE
- #define GSMFIBOCOMG510_DGB_PRINT_MSG printf
+#define GSMFIBOCOMG510_DGB_PRINT_INFO_ENABLE
+#define GSMFIBOCOMG510_DGB_PRINT_ERROR_ENABLE
+
+#ifdef GSMFIBOCOMG510_DGB_PRINT_INFO_ENABLE
+ #define GSMFIBOCOMG510_PRINT_INFO printf
 #else
- #define GSMFIBOCOMG510_DGB_PRINT_MSG
+ #define GSMFIBOCOMG510_PRINT_INFO
+#endif
+
+#ifdef GSMFIBOCOMG510_DGB_PRINT_ERROR_ENABLE
+ #define GSMFIBOCOMG510_PRINT_ERROR printf
+#else
+ #define GSMFIBOCOMG510_PRINT_ERROR
 #endif
 
 // Fibocom G510 GSM Module Parameters
 // -----------------------------------------------------------
-#define GSM_HW_POWER_DOWN_DELAY_MS 3100 // data-sheet recommends min 3000ms
-#define GSM_HW_POWER_UP_DELAY_MS   900  // data-sheet recommends min 800ms
-#define GSM_HW_RESET_DELAY_MS      100  // not stated anywhere in documentation
-#define GSM_HW_WAKEUP_DELAY_MS     100  // not stated anywhere in documentation
+#define GSM_HW_POWER_DOWN_DELAY_MS     3100 // data-sheet recommends min 3000ms
+#define GSM_HW_POWER_UP_DELAY_MS       1500 // data-sheet recommends min 800ms
+#define GSM_HW_RESET_DELAY_MS          100  // not stated anywhere in documentation
+#define GSM_HW_WAKEUP_DELAY_MS         100  // not stated anywhere in documentation
+#define GSM_HW_DELAY_AFTER_POWER_UP_MS 3000 // min amount of time to wait between power-up sequence
+                                            // and the state when gsm is ready to received AT cmds
+#define GSM_HW_DELAY_BTWN_ATCMD_AND_RESP 500 // delay between AT cmd sent and response, due to slow nature of UART
 
 #define GSM_CARRIAGE_RETURN "\r"
 
@@ -49,9 +60,10 @@
 
 // Fibocom G510 GSM Module AT Commands Action
 // -----------------------------------------------------------
-#define GSM_AT_CMD_SET	"="
-#define GSM_AT_CMD_READ	"?"
-#define GSM_AT_CMD_TEST	"=?"
+#define GSM_AT_CMD_SET	        "="
+#define GSM_AT_CMD_SET_NO_VALUE ""
+#define GSM_AT_CMD_READ	        "?"
+#define GSM_AT_CMD_TEST	        "=?"
 
 // Fibocom G510 GSM Module Hardware States
 // -----------------------------------------------------------
