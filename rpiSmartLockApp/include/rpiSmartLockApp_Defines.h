@@ -21,7 +21,7 @@
  // GSM Module defines
  #ifdef GSM_MODULE_FIBOCOM_G510
   //TODO: update these defines accordingly
-  #define GSM_FIBOCOMG510_GPIO_POWER_ON 0
+  #define GSM_FIBOCOMG510_GPIO_POWER_ON 18
   #define GSM_FIBOCOMG510_GPIO_VDD      1
   #define GSM_FIBOCOMG510_GPIO_WAKE_UP  2
   #define GSM_FIBOCOMG510_GPIO_RING     3
