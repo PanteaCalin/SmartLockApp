@@ -57,7 +57,13 @@ int gsm_fibocomg510_init(void) {
 
     // test-only
     gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT, NULL);
-    sleepMs(5000);
+    sleepMs(100);
+    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
+
+    sleepMs(100);
+
+    gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIM_PIN, NULL);
+    sleepMs(100);
     gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
 
     gsm_fibocomg510_initialized = 1;
@@ -109,7 +115,8 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmd
     atCmdSize = (strlen(GSM_AT_CMD_PREFIX) + \
                  strlen(atCmdAction)       + \
                  strlen(atCmd)             +
-                 ((atCmdAction == (char*)GSM_AT_CMD_SET) ? strlen(atCmdVal) : 0)
+                 ((atCmdAction == (char*)GSM_AT_CMD_SET) ? strlen(atCmdVal) : 0) + \
+                 1 /* GSM_CARRIAGE_RETURN */
                  ) * sizeof(char);
 
     // truncate the maximum length of the heap allocated buffer to the maximum SMS payload, as specified by the protocol;
@@ -133,12 +140,16 @@ static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmd
     memset(atCmdPtr, 0x00, atCmdSize);
 
     // compose the AT cmd
-    strcat(atCmdPtr, GSM_AT_CMD_PREFIX);
+    strcat(atCmdPtr, (char*)GSM_AT_CMD_PREFIX);
     strcat(atCmdPtr, atCmd);
     strcat(atCmdPtr, atCmdAction);
-    ((atCmdAction == (char*)GSM_AT_CMD_SET) ? strcat(atCmdPtr, atCmdVal) : 0 /* do nothing */);
+    ((atCmdAction == (char*)GSM_AT_CMD_SET) ? strcat(atCmdPtr, atCmdVal) : 0  /*do nothing*/ );
+    strcat(atCmdPtr, (char*)GSM_CARRIAGE_RETURN);
+    //snprintf(atCmdPtr, atCmdSize, "%s%s%s%s", GSM_AT_CMD_PREFIX, GSM_SIGNAL_STRENGHT, GSM_AT_CMD_READ, CR);
+    //snprintf(atCmdPtr, atCmdSize, "%s%s%s%s", GSM_AT_CMD_PREFIX, atCmd, atCmdAction, CR);
 
-    GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd: \"%s\"; AT Cmd Size: %d\n",__func__, atCmdPtr, atCmdSize);
+    GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd: %s\n",__func__, atCmdPtr);
+    GSMFIBOCOMG510_DGB_PRINT_MSG("%s - AT Cmd Size: %d\n", __func__, atCmdSize);
 
     // send AT cmd using serial port
     bytesSend = uart.writeData(gsmSerialPortFileDescriptor, atCmdPtr, atCmdSize);
