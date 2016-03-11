@@ -22,6 +22,7 @@ void selectAPI_uart(void) {
   uart.readData               = uart_readData;
   uart.readInputBuffer        = uart_readUartInputBuffer;
   uart.getInputBytesAvailable = uart_getInputBytesAvailable;
+  uart.flushIOBuffers         = uart_flushInOutBuffers;
  #else
   //TODO:
  #endif

@@ -24,6 +24,7 @@ typedef struct {
  int  (*readData)(int fd, void* readData, int bytes);
  void (*readInputBuffer)(int fd, char* readBuffer);
  int  (*getInputBytesAvailable)(int fd);
+ void (*flushIOBuffers)(int fd);
 } ty_uart_api;
 
 ty_uart_api uart;
