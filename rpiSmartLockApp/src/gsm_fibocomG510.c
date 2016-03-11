@@ -18,6 +18,7 @@
 int gsmSerialPortFileDescriptor = -1;
 extern ty_serialPortConfig serialPortCfg_Default;
 static int gsm_fibocomg510_initialized = 0; //TODO: change type to bool
+static char ATCmdRespBuffer[GSM_MAX_SMS_SIZE_BYTES]; // statically allocated buffer used to hold the AT cmd responses;
 
 // ###########################################################
 // Static Function Prototypes
@@ -60,25 +61,31 @@ int gsm_fibocomg510_init(void) {
     GSMFIBOCOMG510_PRINT_INFO("----------------------------------------------\n");
     gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT, NULL);
      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
-    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
+    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, &ATCmdRespBuffer, NULL);
      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
+
+     GSMFIBOCOMG510_PRINT_INFO("----------------------------------------------\n");
+     gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIGNAL_STRENGHT, NULL);
+      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
+     gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, &ATCmdRespBuffer, NULL);
+      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
 
      GSMFIBOCOMG510_PRINT_INFO("----------------------------------------------\n");
     gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIM_PIN, NULL);
      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
-    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
+    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, &ATCmdRespBuffer, NULL);
      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
 
     GSMFIBOCOMG510_PRINT_INFO("----------------------------------------------\n");
     gsm_fibocomg510_sendATcmd(GSM_AT_CMD_SET, GSM_SIM_PIN, "\"0000\"");
      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
-    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
+    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, &ATCmdRespBuffer, NULL);
      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
 
     GSMFIBOCOMG510_PRINT_INFO("----------------------------------------------\n");
     gsm_fibocomg510_sendATcmd(GSM_AT_CMD_READ, GSM_SIM_PIN, NULL);
      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
-    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, NULL, NULL);
+    gsm_fibocomg510_getATcmdResp(RETURN_FULL_RESP, &ATCmdRespBuffer, NULL);
      sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
 
     sleepMs(1000);
@@ -86,7 +93,7 @@ int gsm_fibocomg510_init(void) {
 
     // flush I/O UART buffers
     sleepMs(GSM_HW_DELAY_BTWN_ATCMD_AND_RESP);
-    uart_flushInOutBuffers(gsmSerialPortFileDescriptor);
+    uart.flushIOBuffers(gsmSerialPortFileDescriptor);
 
     gsm_fibocomg510_initialized = 1;
     return 0;
@@ -115,11 +122,11 @@ int gsm_fibocomg510_getStatus(char *status) {
 // static function definition
 // -----------------------------------------------------------
 static int gsm_fibocomg510_sendATcmd(char* atCmdAction, char* atCmd, char* atCmdVal) {
-    GSMFIBOCOMG510_PRINT_INFO("%s\n", __func__);
+    GSMFIBOCOMG510_PRINT_INFO("\n*** %s ***\n", __func__);
 
     char* atCmdPtr = NULL;
-    int atCmdSize = 0;
-    int bytesSend = 0;
+    int atCmdSize  = 0;
+    int bytesSend  = 0;
 
     // verify the validity of argument pointers
     if( (atCmdAction == NULL) || (atCmd == NULL) || ((atCmdAction == (char*)GSM_AT_CMD_SET) && (atCmdVal == NULL)) ) {
@@ -194,39 +201,35 @@ IMPORTANT: this function's design is very dangerous due to the dynamic allocatio
            is pointing to an un-allocated heap chunk of data.
 */
 static int gsm_fibocomg510_getATcmdResp(ty_ATCmdRespAction action, char* resp, char* expectedResp) {
+	GSMFIBOCOMG510_PRINT_INFO("\n*** %s ***\n", __func__);
 
     int uartInputBufferReceivedBytes = uart.getInputBytesAvailable(gsmSerialPortFileDescriptor);
-    GSMFIBOCOMG510_PRINT_INFO("%s - INFO: uart input buffer bytes available: %d\n",__func__, uartInputBufferReceivedBytes);
+    GSMFIBOCOMG510_PRINT_INFO("%s - INFO: uart input buffer bytes available: %d\n", \
+    		                                   __func__, uartInputBufferReceivedBytes);
     if(uartInputBufferReceivedBytes <= 0) {
         GSMFIBOCOMG510_PRINT_ERROR("ERROR: file %s, line %d\n",__FILE__, __LINE__);
         return -1;
     }
 
-    // allocate heap buffer for AT Cmd Response
-    // TODO: reconsider your options here.
-    // Maybe there's a safer way of doing this instead of using dynamic buffer allocation
-    char* atCmdRespPtr = malloc(uartInputBufferReceivedBytes * sizeof(char));
-
-    if(atCmdRespPtr == NULL) {
-        GSMFIBOCOMG510_PRINT_ERROR("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-        free(atCmdRespPtr);
-        return -2;
+    if(uartInputBufferReceivedBytes > GSM_MAX_SMS_SIZE_BYTES) {
+    	GSMFIBOCOMG510_PRINT_INFO("%s - WARNING: uart input bffer bytes available truncated to %d\n", \
+    																  __func__, GSM_MAX_SMS_SIZE_BYTES);
+    	uartInputBufferReceivedBytes = GSM_MAX_SMS_SIZE_BYTES;
     }
 
+    // init response buffer to 0x00
+    // TODO: is strlen() reliable here?
+    memset(resp, 0x00, strlen(resp)*sizeof(char));
+
     // read AT Cmd Response
-    uart.readInputBuffer(gsmSerialPortFileDescriptor, atCmdRespPtr);
-    GSMFIBOCOMG510_PRINT_INFO("%s - INFO: AT Cmd Response: \"%s\"\n",__func__, atCmdRespPtr);
+    uart.readInputBuffer(gsmSerialPortFileDescriptor, resp);
+    GSMFIBOCOMG510_PRINT_INFO("%s - INFO: AT Cmd Response: \"%s\"\n",__func__, resp);
 
     // parse the response depending on the action demanded
     switch(action) {
         case RETURN_FULL_RESP:
-            if(resp == NULL) {
-                GSMFIBOCOMG510_PRINT_ERROR("ERROR: file %s, line %d\n",__FILE__, __LINE__);
-                free(atCmdRespPtr);
-                return -3;
-            }
-            resp = atCmdRespPtr;
-            break;
+        	//TODO
+        	break;
         case RETURN_RESP_VALUE:
             //TODO
             break;
@@ -241,7 +244,10 @@ static int gsm_fibocomg510_getATcmdResp(ty_ATCmdRespAction action, char* resp, c
             break;
     }
 
-    free(atCmdRespPtr);
+    // flush UART I/O buffers. Specifically useful in the case when the input available bytes had to be truncated;
+    // there shouldn't be any real-life case in which this flush will throw away useful data coming from gsm.
+    // The gsm module acts as a slave in this app, therefore it should only respond when asked.
+    uart.flushIOBuffers(gsmSerialPortFileDescriptor);
     return 0;
 }
 
